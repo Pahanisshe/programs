@@ -1,0 +1,462 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+
+namespace графы
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Введите количество вершин орграфа: ");
+            int numberVert = Convert.ToInt32(Console.ReadLine());
+            Graph graph = new Graph(numberVert, 0, true);
+            graph.AllpGraphs();
+            Console.ReadKey();
+        }
+    }
+
+    public class Combinatorics
+    {
+        private int lengthAlphabet;
+        private int lenghtObject;
+        private bool repetitions;
+        private int[] combObject;
+        private string nameObject;
+
+        //создает универсальный комбинаторный объект с повторениями или без
+        public void Object(int lengthAlphabet, int lenghtObject, bool repetitions)
+        {
+            this.lengthAlphabet = lengthAlphabet;
+            this.lenghtObject = lenghtObject;
+            this.repetitions = repetitions;
+            this.combObject = new int[this.lengthAlphabet];
+            if (repetitions)
+                for (int i = 0; i < this.lengthAlphabet; i++)
+                    combObject[i] = 1;
+            else
+                for (int i = 0; i < this.lengthAlphabet; i++)
+                    combObject[i] = i + 1;
+        }
+
+        //частный случай
+        public void Object(int lengthAlphabet, bool repetitions)
+        {
+            Object(lengthAlphabet, lengthAlphabet, repetitions);
+        }
+
+        //возвращает объект в начальное состояние
+        public void Reset()
+        {
+            if (repetitions)
+                for (int i = 0; i < lengthAlphabet; i++)
+                    combObject[i] = 1;
+            else
+                for (int i = 0; i < lengthAlphabet; i++)
+                    combObject[i] = i + 1;
+        }
+
+        //вывод в файл всех перестановок
+        public void Permutations(int lenghtObject)
+        {
+            this.lengthAlphabet = lenghtObject;
+            this.lenghtObject = lenghtObject;
+            this.combObject = new int[this.lenghtObject];
+            this.nameObject = "Permutations.txt";
+            StreamWriter streamWriter = new StreamWriter(nameObject);
+            for (int i = 0; i < this.lenghtObject; i++)
+                combObject[i] = i + 1;
+            Print(streamWriter);
+            while (NextPermutation())
+                Print(streamWriter);
+            streamWriter.Close();
+        }
+
+        //вывод в файл всех размещений
+        public void Accommodations(int lengthAlphabet, int lenghtObject)
+        {
+            this.lengthAlphabet = lengthAlphabet;
+            this.lenghtObject = lenghtObject;
+            this.combObject = new int[this.lengthAlphabet];
+            this.nameObject = "Accommodations.txt";
+            StreamWriter streamWriter = new StreamWriter(nameObject);
+            for (int i = 0; i < this.lengthAlphabet; i++)
+                combObject[i] = i + 1;
+            Print(streamWriter);
+            while (NextAccommodation())
+                Print(streamWriter);
+            streamWriter.Close();
+        }
+
+        //вывод в файл всех сочетаний
+        public void Combinations(int lengthAlphabet, int lenghtObject)
+        {
+            this.lengthAlphabet = lengthAlphabet;
+            this.lenghtObject = lenghtObject;
+            this.combObject = new int[this.lengthAlphabet];
+            this.nameObject = "Combinations.txt";
+            StreamWriter streamWriter = new StreamWriter(nameObject);
+            for (int i = 0; i < this.lengthAlphabet; i++)
+                combObject[i] = i + 1;
+            Print(streamWriter);
+            while (NextCombination())
+                Print(streamWriter);
+            streamWriter.Close();
+        }
+
+        //построение следующей перестановки по лексикографическому порядку
+        public bool NextPermutation()
+        {
+            int j = lenghtObject - 2;
+            while (j != -1 && combObject[j] >= combObject[j + 1]) j--;
+            if (j == -1)
+                return false;
+            int elem = lenghtObject - 1;
+            while (combObject[j] >= combObject[elem]) elem--;
+            Swap(j, elem);
+            int leftElem = j + 1, rightElem = lenghtObject - 1;
+            while (leftElem < rightElem)
+                Swap(leftElem++, rightElem--);
+            return true;
+        }
+
+        //построение следующего размещения по лексикографическому порядку
+        public bool NextAccommodation()
+        {
+            int j;
+            do
+            {
+                j = lengthAlphabet - 2;
+                while (j != -1 && combObject[j] >= combObject[j + 1]) j--;
+                if (j == -1)
+                    return false;
+                int elem = lengthAlphabet - 1;
+                while (combObject[j] >= combObject[elem]) elem--;
+                Swap(j, elem);
+                int leftElem = j + 1, rightElem = lengthAlphabet - 1;
+                while (leftElem < rightElem)
+                    Swap(leftElem++, rightElem--);
+            } while (j > lenghtObject - 1);
+            return true;
+        }
+
+        //построение следующего сочетания по лексикографическому порядку
+        public bool NextCombination()
+        {
+            int k = lenghtObject;
+            for (int i = k - 1; i >= 0; i--)
+                if (combObject[i] < lengthAlphabet - k + i + 1)
+                {
+                    combObject[i]++;
+                    for (int j = i + 1; j < k; j++)
+                        combObject[j] = combObject[j - 1] + 1;
+                    return true;
+                }
+            return false;
+        }
+
+        private void Swap(int firstElem, int secondElem)
+        {
+            int elem = combObject[firstElem];
+            combObject[firstElem] = combObject[secondElem];
+            combObject[secondElem] = elem;
+        }
+
+        private void Print(StreamWriter streamWriter)
+        {
+            for (int i = 0; i < lenghtObject; i++)
+                streamWriter.Write($"{combObject[i]}");
+            streamWriter.WriteLine();
+        }
+
+        public int[] CombObject
+        {
+            get
+            {
+                return combObject;
+            }
+        }
+    }
+
+    public class Graph
+    {
+        private int numberVertexes;
+        private int numberEdges;
+        private int numberArcs;
+        private int maxEdg;
+        private int maxArc;
+        private bool orientation;
+        private int[,] edges;
+        private int[,] arcs;
+        private bool[,] adjMatrix;
+
+        //конструктор создающий ориентированный или неориентированный граф с заданным количеством вершин и ребер
+        public Graph (int numberVertexes, int numberEdgesOrArc, bool orientation)
+        {
+            this.numberVertexes = numberVertexes;
+            this.orientation = orientation;
+            adjMatrix = new bool[this.numberVertexes, this.numberVertexes];
+            Combinatorics combObject = new Combinatorics();
+            combObject.Object(this.numberVertexes, 2, false);
+            if (this.orientation)
+            {
+                numberArcs = numberEdgesOrArc;
+                maxArc = numberVertexes * (numberVertexes - 1);
+                arcs = new int[maxArc, 2];
+                for(int i = 0; i < maxArc; i++)
+                {
+                    arcs[i, 0] = combObject.CombObject[0];
+                    arcs[i, 1] = combObject.CombObject[1];
+                    combObject.NextAccommodation();
+                }
+            }
+            else
+            {
+                numberEdges = numberEdgesOrArc;
+                maxEdg = (numberVertexes * (numberVertexes - 1)) / 2;
+                edges = new int[maxEdg, 2];
+                for (int i = 0; i < maxEdg; i++)
+                {
+                    edges[i, 0] = combObject.CombObject[0];
+                    edges[i, 1] = combObject.CombObject[1];
+                    combObject.NextCombination();
+                }
+            }         
+
+        }
+
+        //ввод матрицы по ребрам
+        public void InputMatrix()
+        {
+            int firstVertex, secondVertex;
+            if (orientation)
+                for (int i = 0; i < numberArcs; i++)
+                {
+                    firstVertex = Convert.ToInt32(Console.ReadLine());
+                    secondVertex = Convert.ToInt32(Console.ReadLine());
+                    adjMatrix[firstVertex - 1, secondVertex - 1] = true;
+                }
+            else
+            {
+                for (int i = 0; i < numberEdges; i++)
+                {
+                    firstVertex = Convert.ToInt32(Console.ReadLine());
+                    secondVertex = Convert.ToInt32(Console.ReadLine());
+                    adjMatrix[firstVertex - 1, secondVertex - 1] = adjMatrix[secondVertex - 1, firstVertex - 1] = true;
+                }
+                
+            }
+        }
+
+        //строит все pq-графы
+        public void AllpqGraphs()
+        {
+            Combinatorics combObject = new Combinatorics();
+            StreamWriter streamWriter = new StreamWriter("AllpqGraphs.txt");
+            int numberGraphs = 0;
+            if (orientation)
+            {
+                combObject.Object(maxArc, numberArcs, false);
+                do
+                {
+                    for (int i = 0; i < numberVertexes; i++)
+                        for (int j = 0; j < numberVertexes; j++)
+                            adjMatrix[i, j] = false;
+                    for (int i = 0; i < numberArcs; i++)
+                    {
+                        adjMatrix[arcs[combObject.CombObject[i] - 1, 0] - 1, arcs[combObject.CombObject[i] - 1, 1] - 1] = true;
+                    }
+                    PrintMatrix(streamWriter);
+                    numberGraphs++;
+                } while (combObject.NextCombination());
+            }
+            else
+            {
+                combObject.Object(maxEdg, numberEdges, false);
+                do
+                {
+                    for (int i = 0; i < numberVertexes; i++)
+                        for (int j = 0; j < numberVertexes; j++)
+                            adjMatrix[i, j] = false;
+                    for (int i = 0; i < numberEdges; i++)
+                    {
+                        adjMatrix[edges[combObject.CombObject[i] - 1, 0] - 1, edges[combObject.CombObject[i] - 1, 1] - 1] = true;
+                        adjMatrix[edges[combObject.CombObject[i] - 1, 1] - 1, edges[combObject.CombObject[i] - 1, 0] - 1] = true;
+                    }
+                    PrintMatrix(streamWriter);
+                    numberGraphs++;
+                } while (combObject.NextCombination());
+            }
+            streamWriter.WriteLine(numberGraphs);
+            streamWriter.Close();
+            System.Diagnostics.Process.Start("AllpqGraphs.txt");
+        }
+
+        //строит все p-графы
+        public void AllpGraphs()
+        {
+            StreamWriter streamWriter = new StreamWriter("AllpGraphs.txt");
+            Combinatorics combObject = new Combinatorics();
+            int numberGraphs = 0;
+            if (orientation)
+            {
+                for (numberArcs = 0; numberArcs <= maxArc; numberArcs++)
+                {
+                    combObject.Object(maxArc, numberArcs, false);
+                    do
+                    {
+                        for (int i = 0; i < numberVertexes; i++)
+                            for (int j = 0; j < numberVertexes; j++)
+                                adjMatrix[i, j] = false;
+                        for (int i = 0; i < numberArcs; i++)
+                            adjMatrix[arcs[combObject.CombObject[i] - 1, 0] - 1, arcs[combObject.CombObject[i] - 1, 1] - 1] = true;
+                        if (Connected() && !Cyclic())
+                        {
+                            PrintMatrix(streamWriter);
+                            numberGraphs++;
+                        }
+                    } while (combObject.NextCombination());
+                }
+            }
+            else
+            {
+                for (numberEdges = 0; numberEdges <= maxEdg; numberEdges++)
+                {
+                    combObject.Object(maxEdg, numberEdges, false);
+                    do
+                    {
+                        for (int i = 0; i < numberVertexes; i++)
+                            for (int j = 0; j < numberVertexes; j++)
+                                adjMatrix[i, j] = false;
+                        for (int i = 0; i < numberEdges; i++)
+                        {
+                            adjMatrix[edges[combObject.CombObject[i] - 1, 0] - 1, edges[combObject.CombObject[i] - 1, 1] - 1] = true;
+                            adjMatrix[edges[combObject.CombObject[i] - 1, 1] - 1, edges[combObject.CombObject[i] - 1, 0] - 1] = true;
+                        }
+                        PrintMatrix(streamWriter);
+                        numberGraphs++;
+                    } while (combObject.NextCombination());
+                }
+            }
+            streamWriter.WriteLine(numberGraphs);
+            streamWriter.Close();
+            System.Diagnostics.Process.Start("AllpGraphs.txt");
+        }
+
+        //проверка графа на связность (слабо-связный)
+        public bool Connected()
+        {
+            bool[] visited = new bool[numberVertexes];
+            for (int i = 0; i < numberVertexes; i++)
+                visited[i] = false;
+            visited = DFS(0, visited);
+            for (int i = 0; i < numberVertexes; i++)
+                if (visited[i] == false)
+                    return false;
+            return true;
+        }
+
+        public bool Cyclic()
+        {
+            byte[] visited = new byte[numberVertexes];
+            bool f = false;
+            for (int i = 0; i < numberVertexes; i++)
+            {
+                for (int j = 0; j < numberVertexes; j++)
+                    visited[j] = 0;
+                f = false;
+
+                Cyclic(i, visited, ref f, -1);
+                for (int k = 0; k < numberVertexes; k++)
+                    if (visited[k] != 2)
+                        Cyclic(k, visited, ref f, -1);
+                if (f)
+                    return true;
+            }
+            return false;
+        }
+
+        public void Cyclic(int currVert, byte[] visited, ref bool cyclic, int prevVert)
+        {
+            visited[currVert] = 1;
+            for(int nextVert = 0; nextVert < numberVertexes; nextVert++)
+            {
+                if(adjMatrix[currVert, nextVert] == true && visited[nextVert] == 1 && nextVert != prevVert)
+                {
+                    cyclic = true;
+                    return;
+                }
+                if(adjMatrix[currVert, nextVert] == true && visited[nextVert] == 0 && nextVert != prevVert)
+                {
+                    Cyclic(nextVert, visited, ref cyclic, currVert);
+                }
+            }
+            visited[currVert] = 2;
+        }
+
+        //вывод массива реберв
+        public void PrintEdges()
+        {
+            for(int i = 0; i< maxEdg; i++)
+            {
+                Console.WriteLine($"{edges[i, 0]} {edges[i, 1]}");
+            }
+        }
+
+        public void PrintArcs()
+        {
+            for (int i = 0; i < maxArc; i++)
+            {
+                Console.WriteLine($"{arcs[i, 0]} {arcs[i, 1]}");
+            }
+        }
+
+        //вывод матрицы смежности графа
+        public void PrintMatrix(StreamWriter streamWriter)
+        {
+            for (int i = 0; i < numberVertexes; i++)
+            {
+                for (int j = 0; j < numberVertexes; j++)
+                    streamWriter.Write($"{Convert.ToInt32(adjMatrix[i, j])}");
+                streamWriter.WriteLine();
+            }
+            streamWriter.WriteLine();
+        }
+
+        private bool[] DFS(int currVert, bool[] visited)
+        {
+            visited[currVert] = true;
+            for (int nextVert = 0; nextVert < numberVertexes; nextVert++)
+                if ((adjMatrix[currVert, nextVert] == true || adjMatrix[nextVert, currVert] == true) && !visited[nextVert])
+                    DFS(nextVert, visited);
+            return visited;
+        }
+
+        public int NumberVertexes
+        {
+            get
+            {
+                return numberVertexes;
+            }
+            set
+            {
+                numberVertexes = value;
+            }
+        }
+
+        public int NumberEdges
+        {
+            get
+            {
+                return numberEdges;
+            }
+            set
+            {
+                numberEdges = value;
+            }
+        }
+    }
+}
