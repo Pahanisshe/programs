@@ -15,6 +15,10 @@ namespace графы
             int numberVert = Convert.ToInt32(Console.ReadLine());
             Graph graph = new Graph(numberVert, 0, true);
             graph.AllpGraphs();
+
+            MarriedСouples marriedСouples = new MarriedСouples(10);
+            marriedСouples.AllCouples();
+
             Console.ReadKey();
         }
     }
@@ -458,5 +462,55 @@ namespace графы
                 numberEdges = value;
             }
         }
+    }
+
+    public class MarriedСouples
+    {
+        private int couplesNumber;
+        private bool[] places;
+
+        public MarriedСouples(int couplesNumber)
+        {
+            this.couplesNumber = couplesNumber;
+            places = new bool[this.couplesNumber];
+        }
+
+        public void AllCouples()
+        {
+            StreamWriter str = new StreamWriter("AllCouples.txt");
+            Combinatorics combObj = new Combinatorics();
+            combObj.Object(couplesNumber, false);
+            bool f;
+            int n = 0;
+            do
+            {
+                f = true;
+                for (int i = 0; i < couplesNumber - 1; i++)
+                    if (combObj.CombObject[i] - 1 == i || combObj.CombObject[i] - 1 == i + 1)
+                        f = false;
+                if (combObj.CombObject[couplesNumber - 1] - 1 == couplesNumber - 1 || combObj.CombObject[couplesNumber - 1] - 1 == 0)
+                    f = false;
+                if (f)
+                {
+                    Print(str, combObj.CombObject);
+                    n++;
+                }
+            } while (combObj.NextPermutation());
+            str.WriteLine(n);
+            str.Close();
+            System.Diagnostics.Process.Start("AllCouples.txt");
+        }
+
+        private void Print(StreamWriter str, int[] combObj)
+        {
+            for (int i = 0; i < couplesNumber; i++)
+                str.Write(i + 1 + "\t");
+            str.WriteLine();
+            for (int i = 0; i < couplesNumber; i++)
+                str.Write(combObj[i] + "\t");
+            str.WriteLine();
+            str.WriteLine();
+        }
+
     }
 }
